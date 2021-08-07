@@ -3,6 +3,7 @@ import discord
 import re
 from discord.ext import tasks
 from datetime import datetime
+import threading
 
 token = os.environ['DISCORD_BOT_TOKEN']
 notice_channel = 853919175406649364
@@ -47,7 +48,7 @@ async def loop():
     elif now == '15:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone お茶会の時間ですわ')
-    elif now == '18:00':
+    elif now == '17:20':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone おかえり、紳士諸君')
     elif now == '23:59':
@@ -56,6 +57,7 @@ async def loop():
 @client.event
 async def on_ready():
     loop.start()
+@client.event
 async def on_message(message):
     # 送信者がbotである場合は弾く
     if message.author.bot:

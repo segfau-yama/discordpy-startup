@@ -43,8 +43,6 @@ client = discord.Client()
 async def loop():
     # 現在の時刻
     now = datetime.now(tz=JST).strftime('%H:%M')
-    channel = client.get_channel(notice_channel)
-    await channel.send(now)
     if now == '07:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone ごきげんよう、紳士諸君')

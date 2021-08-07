@@ -2,9 +2,10 @@ import os
 import discord
 import re
 from discord.ext import tasks
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import threading
 
+JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']
 notice_channel = 853919175406649364
 
@@ -41,16 +42,14 @@ client = discord.Client()
 @tasks.loop(seconds=60)
 async def loop():
     # 現在の時刻
-    channel = client.get_channel(notice_channel)
-    now = datetime.now().strftime('%H:%M')
-    await channel.send(now)
+    now = datetime.now(tz=JST).strftime('%H:%M')
     if now == '07:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone ごきげんよう、紳士諸君')
     elif now == '15:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone お茶会の時間ですわ')
-    elif now == '18:00':
+    elif now == '18:34':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone おかえり、紳士諸君')
     elif now == '23:59':

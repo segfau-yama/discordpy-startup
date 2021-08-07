@@ -48,7 +48,7 @@ async def loop():
     elif now == '15:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone お茶会の時間ですわ')
-    elif now == '17:20':
+    elif now == '18:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone おかえり、紳士諸君')
     elif now == '23:59':

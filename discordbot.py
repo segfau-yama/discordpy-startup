@@ -1,7 +1,6 @@
 import os
 import discord
 import re
-from discord.ext import tasks
 from datetime import datetime
 
 token = os.environ['DISCORD_BOT_TOKEN']

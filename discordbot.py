@@ -5,7 +5,8 @@ from discord.ext import tasks
 from datetime import datetime
 import threading
 
-token = os.environ['DISCORD_BOT_TOKEN']
+#token = os.environ['DISCORD_BOT_TOKEN']
+token = "NzEyNjU5NDc1MTUyMTA5NTY4.XsUx2w.BIY9suDPOuTJi-keFu2wt_Pv-kc"
 notice_channel = 853919175406649364
 
 link_regex = re.compile(
@@ -41,7 +42,9 @@ client = discord.Client()
 @tasks.loop(seconds=60)
 async def loop():
     # 現在の時刻
+    channel = client.get_channel(notice_channel)
     now = datetime.now().strftime('%H:%M')
+    await channel.send(now)
     if now == '07:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone ごきげんよう、紳士諸君')

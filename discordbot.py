@@ -5,8 +5,7 @@ from discord.ext import tasks
 from datetime import datetime
 import threading
 
-#token = os.environ['DISCORD_BOT_TOKEN']
-token = "NzEyNjU5NDc1MTUyMTA5NTY4.XsUx2w.BIY9suDPOuTJi-keFu2wt_Pv-kc"
+token = os.environ['DISCORD_BOT_TOKEN']
 notice_channel = 853919175406649364
 
 link_regex = re.compile(

@@ -8,6 +8,8 @@ import threading
 JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']
 notice_channel = 853919175406649364
+vote_channel = 852882836189085697
+news_channel = 853593633051246593
 
 link_regex = re.compile(
     r'https://discord\.com/channels/'
@@ -39,20 +41,21 @@ flag_emoji = {
 }
 
 client = discord.Client()
+
+# 定期メッセージ
 @tasks.loop(seconds=60)
 async def loop():
-    # 現在の時刻
     now = datetime.now(tz=JST).strftime('%H:%M')
     if now == '07:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone ごきげんよう、紳士諸君')
-    elif now == '15:00':
+    if now == '15:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone お茶会の時間ですわ')
-    elif now == '18:00':
+    if now == '18:00':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone おかえり、紳士諸君')
-    elif now == '23:59':
+    if now == '23:59':
         channel = client.get_channel(notice_channel)
         await channel.send('@everyone おやすみ、紳士諸君')
 @client.event
@@ -63,6 +66,8 @@ async def on_message(message):
     # 送信者がbotである場合は弾く
     if message.author.bot:
         return
+
+    # メッセージについたリアクションの個数を送信
     if message.content.startswith("/get_reactions "):
         link = message.content.replace("/get_reactions", "")
         match = link_regex.match(link)
@@ -74,6 +79,7 @@ async def on_message(message):
             text += f"{reaction.emoji} : {reaction.count}\n"
         await message.channel.send(text)
 
+    # 投票機能
     if message.content.startswith("/vote "):
         result = message.content.replace("/vote ", "")
         pattern = re.compile(r'　| ')
@@ -86,5 +92,8 @@ async def on_message(message):
         if result[0] == "cou":
             for mykey in flag_emoji.keys():
                 await vote_message.add_reaction(mykey)
+    if client.get_channel == news_channel:
+        channel = client.get_channel(news_channel)
+        await channel.send('ニュース送信')
 
 client.run(token)

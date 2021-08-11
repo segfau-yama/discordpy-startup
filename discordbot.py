@@ -83,7 +83,6 @@ async def loop():
     if time == '02:50':
         await channel.send('@everyone おやすみ、紳士諸君')
         vote_message = await v_channel.send(f"@everyone{date}の投票です。一人につき二国まで投票可能です。")
-        print(vote_message.id)
         for emoji in flag_emoji:
             await vote_message.add_reaction(emoji)
         cur.execute("INSERT INTO vote_message (vote_id,message_id,date) VALUES (1,%s,%s);", (vote_message.id, date))
@@ -97,7 +96,6 @@ async def loop():
     if time == '07:00':
         cur.execute("SELECT * FROM vote_message WHERE vote_id = 1;")
         data = cur.fetchall()
-        print(data[0][0])
         message = await v_channel.fetch_message(str(data[0][0]))
         reactions = message.reactions
         for reaction in reactions:
@@ -110,7 +108,6 @@ async def loop():
         country = ""
         for i in range(20):
             country += f"{data[i]}\n"
-        print(country)
         await channel.send(country)
         conn.commit()
 
@@ -154,7 +151,6 @@ async def on_message(message):
         result = message.content.replace("/sql ", "")
         pattern = re.compile(r'/sql+?')
         sql_query = pattern.split(result)
-        print(sql_query)
         cur.execute(sql_query[0])
         conn.commit()
         try:
@@ -167,8 +163,6 @@ async def on_message(message):
     if message.channel.id == news_channel:
         result = message.content
         tp_point = len(result) / 50
-        print(tp_point)
-        print(country_and_owner[message.author.id])
         cur.execute("UPDATE country_user SET transport_point=transport_point+%s WHERE country_name=%s;",
                     (tp_point, country_and_owner[message.author.id]))
         conn.commit()

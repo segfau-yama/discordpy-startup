@@ -7,8 +7,8 @@ import psycopg2
 import time
 
 JST = timezone(timedelta(hours=9))
-
 token = os.environ['DISCORD_BOT_TOKEN']
+
 develop_channel = 871948382116134922
 client = discord.Client()
 @client.event
@@ -16,6 +16,11 @@ async def on_ready():
     channel = client.get_channel(develop_channel)
     await channel.send("hello")
 
+@client.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    await message.channel.send("hello")
 '''
 database_url = os.environ['DATABASE_URL']
 notice_channel = 853919175406649364

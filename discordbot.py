@@ -80,8 +80,6 @@ async def loop():
     time = now[1]
     channel = client.get_channel(notice_channel)
     v_channel = client.get_channel(vote_channel)
-    d_channel = client.get_channel(develop_channel)
-    await d_channel.send('デバック')
     if time == '02:50':
         await channel.send('@everyone おやすみ、紳士諸君')
         vote_message = await v_channel.send(f"@everyone{date}の投票です。一人につき二国まで投票可能です。")
@@ -119,6 +117,8 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    d_channel = client.get_channel(develop_channel)
+    await d_channel.send('デバック')
     # 送信者がbotである場合は弾く
     if message.author.bot:
         return

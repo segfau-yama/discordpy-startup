@@ -5,6 +5,11 @@ import re
 token = os.environ['DISCORD_BOT_TOKEN']
 database_url = os.environ['DATABASE_URL']
 
+notice_channel = 853919175406649364
+vote_channel = 852882836189085697
+news_channel = 853593633051246593
+develop_channel = 871948382116134922
+
 link_regex = re.compile(
     r'https://discord\.com/channels/'
     r'(?:([0-9]{15,21})|(@me))/'

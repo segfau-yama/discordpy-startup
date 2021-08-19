@@ -3,6 +3,7 @@ import discord
 import re
 from discord.ext import tasks
 from datetime import datetime, timedelta, timezone
+import psycopg2
 
 JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']
@@ -66,6 +67,8 @@ country_and_owner = {
 }
 
 client = discord.Client()
+conn = psycopg2.connect(database_url)
+cur = conn.cursor()
 
 # 定期メッセージ
 @tasks.loop(seconds=60)
@@ -73,16 +76,41 @@ async def loop():
     now = datetime.now(tz=JST).strftime('%Y年%m月%d日 %H:%M')
     pattern = re.compile(r' ')
     now = pattern.split(now)
+    date = now[0]
     time = now[1]
     channel = client.get_channel(notice_channel)
+    v_channel = client.get_channel(vote_channel)
     d_channel = client.get_channel(develop_channel)
     await d_channel.send('デバック')
+    if time == '00:00':
+        await channel.send('@everyone おやすみ、紳士諸君')
+        vote_message = await v_channel.send(f"@everyone{date}の投票です。一人につき二国まで投票可能です。")
+        for emoji in flag_emoji:
+            await vote_message.add_reaction(emoji)
+        cur.execute("INSERT INTO vote_message (vote_id,message_id,date) VALUES (1,%s,%s);", (vote_message.id, date))
+        conn.commit()
     if time == '07:00':
         await channel.send('@everyone ごきげんよう、紳士諸君')
     if time == '15:00':
         await channel.send('@everyone お茶会の時間ですわ')
     if time == '18:00':
         await channel.send('@everyone おかえり、紳士諸君')
+    if time == '23:59':
+        cur.execute("SELECT * FROM vote_message WHERE vote_id = 1;")
+        data = cur.fetchall()
+        message = await channel.fetch_message(str(data[0][0]))
+        reactions = message.reactions
+        for reaction in reactions:
+            tp_point = (reaction.count - 1) * 5
+            cur.execute("UPDATE country_user SET transport_point=transport_point+%s WHERE country_name=%s;",
+                        (tp_point, flag_emoji[str(reaction.emoji)]))
+        cur.execute("SELECT * FROM country_user;")
+        data = cur.fetchall()
+        country = ""
+        for i in range(20):
+            country += f"{data[i]}\n"
+        await v_channel.send(country)
+        conn.commit()
 
 @client.event
 async def on_ready():
@@ -119,4 +147,28 @@ async def on_message(message):
         if result[0] == "cou":
             for emoji in flag_emoji:
                 await vote_message.add_reaction(emoji)
+
+    # クエリ実行機能
+    if message.content.startswith("/sql "):
+        result = message.content.replace("/sql ", "")
+        pattern = re.compile(r'/sql+?')
+        sql_query = pattern.split(result)
+        cur.execute(sql_query[0])
+        conn.commit()
+        try:
+            data = cur.fetchall()
+            await message.channel.send(data)
+        except:
+            await message.channel.send("OK")
+
+    # 輸送力加算(ニュース)
+    if message.channel.id == news_channel:
+        result = message.content
+        tp_point = len(result) / 50
+        cur.execute("UPDATE country_user SET transport_point=transport_point+%s WHERE country_name=%s;",
+                    (tp_point, country_and_owner[message.author.id]))
+        conn.commit()
+
 client.run(token)
+cur.close()
+conn.close()

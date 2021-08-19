@@ -70,28 +70,6 @@ client = discord.Client()
 conn = psycopg2.connect(database_url)
 cur = conn.cursor()
 
-# 定期メッセージ
-@tasks.loop(seconds=60)
-async def loop():
-    now = datetime.now(tz=JST).strftime('%Y年%m月%d日 %H:%M')
-    pattern = re.compile(r' ')
-    now = pattern.split(now)
-    date = now[0]
-    time = now[1]
-    channel = client.get_channel(notice_channel)
-    v_channel = client.get_channel(vote_channel)
-    d_channel = client.get_channel(develop_channel)
-    await d_channel.send('デバック')
-    if time == '07:00':
-        await channel.send('@everyone ごきげんよう、紳士諸君')
-    if time == '15:00':
-        await channel.send('@everyone お茶会の時間ですわ')
-    if time == '18:00':
-        await channel.send('@everyone おかえり、紳士諸君')
-@client.event
-async def on_ready():
-    loop.start()
-
 @client.event
 async def on_message(message):
     # 送信者がbotである場合は弾く

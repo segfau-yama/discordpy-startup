@@ -73,10 +73,8 @@ async def loop():
     now = datetime.now(tz=JST).strftime('%Y年%m月%d日 %H:%M')
     pattern = re.compile(r' ')
     now = pattern.split(now)
-    date = now[0]
     time = now[1]
     channel = client.get_channel(notice_channel)
-    v_channel = client.get_channel(vote_channel)
     d_channel = client.get_channel(develop_channel)
     await d_channel.send('デバック')
     if time == '07:00':

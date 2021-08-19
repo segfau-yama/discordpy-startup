@@ -67,8 +67,7 @@ country_and_owner = {
 }
 
 client = discord.Client()
-conn = psycopg2.connect(database_url)
-cur = conn.cursor()
+
 
 @client.event
 async def on_message(message):
@@ -90,5 +89,3 @@ async def on_message(message):
                 await vote_message.add_reaction(emoji)
 
 client.run(token)
-cur.close()
-conn.close()

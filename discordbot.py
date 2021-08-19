@@ -81,7 +81,7 @@ async def loop():
     channel = client.get_channel(notice_channel)
     v_channel = client.get_channel(vote_channel)
     d_channel = client.get_channel(develop_channel)
-    await channel.send('デバック')
+    await d_channel.send('デバック')
     if time == '00:00':
         await channel.send('@everyone おやすみ、紳士諸君')
         vote_message = await v_channel.send(f"@everyone{date}の投票です。一人につき二国まで投票可能です。")
@@ -147,20 +147,6 @@ async def on_message(message):
         if result[0] == "cou":
             for emoji in flag_emoji:
                 await vote_message.add_reaction(emoji)
-
-    # クエリ実行機能
-    if message.content.startswith("/sql "):
-        result = message.content.replace("/sql ", "")
-        pattern = re.compile(r'/sql+?')
-        sql_query = pattern.split(result)
-        cur.execute(sql_query[0])
-        conn.commit()
-        try:
-            data = cur.fetchall()
-            await message.channel.send(data)
-        except:
-            await message.channel.send("OK")
-
     # 輸送力加算(ニュース)
     if message.channel.id == news_channel:
         result = message.content

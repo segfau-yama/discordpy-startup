@@ -1,18 +1,9 @@
 import os
 import discord
 import re
-from discord.ext import tasks
-from datetime import datetime, timedelta, timezone
-import psycopg2
 
-JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']
 database_url = os.environ['DATABASE_URL']
-
-notice_channel = 853919175406649364
-vote_channel = 852882836189085697
-news_channel = 853593633051246593
-develop_channel = 871948382116134922
 
 link_regex = re.compile(
     r'https://discord\.com/channels/'
@@ -43,31 +34,7 @@ flag_emoji = {
     "<:C020:872010874376818708>": "高天原北域商会"
 }
 
-country_and_owner = {
-    749896281618645036: "アメリカーナ帝国",
-    858717333287338004: "イギリス連合王国",
-    501014325138292737: "オクター連邦",
-    651650016946946048: "オーストリア帝国/神聖ローマ帝国",
-    822100206563754045: "カリフォーニエン大公国",
-    "no_key_1": "ガリア連邦共和国",
-    812992534597861397: "グアダラハラ連邦",
-    820918441770745866: "テソモニア旧共産圏地域",
-    736112703093080114: "テソモニア民主共和国",
-    629189757758341122: "デンマーク共和国",
-    "no_key_2": "ニッショニア連邦",
-    533530662981074944: "ネーデルランド連合王国",
-    243420382709809152: "ヒンドゥスターンベンガル武装帝国",
-    707209061933776916: "ビザンツ帝国",
-    735055190402531329: "モンゴル自由共和国",
-    822098008094408724: "ロヘニア",
-    772108293950406656: "地球連邦",
-    647340197196857365: "日本国",
-    491578038207774721: "自由カリブ海同盟",
-    661481352931311636: "高天原北域商会"
-}
-
 client = discord.Client()
-
 
 @client.event
 async def on_message(message):

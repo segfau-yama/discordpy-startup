@@ -1,7 +1,6 @@
 import os
 import discord
 import re
-from discord.ext import tasks
 from datetime import datetime, timedelta, timezone
 import psycopg2
 

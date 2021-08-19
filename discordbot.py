@@ -2,7 +2,6 @@ import os
 import discord
 import re
 from datetime import datetime, timedelta, timezone
-import psycopg2
 
 JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']

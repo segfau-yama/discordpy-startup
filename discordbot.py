@@ -82,13 +82,6 @@ async def loop():
     v_channel = client.get_channel(vote_channel)
     d_channel = client.get_channel(develop_channel)
     await d_channel.send('デバック')
-    if time == '00:00':
-        await channel.send('@everyone おやすみ、紳士諸君')
-        vote_message = await v_channel.send(f"@everyone{date}の投票です。一人につき二国まで投票可能です。")
-        for emoji in flag_emoji:
-            await vote_message.add_reaction(emoji)
-        cur.execute("INSERT INTO vote_message (vote_id,message_id,date) VALUES (1,%s,%s);", (vote_message.id, date))
-        conn.commit()
     if time == '07:00':
         await channel.send('@everyone ごきげんよう、紳士諸君')
     if time == '15:00':
@@ -104,19 +97,6 @@ async def on_message(message):
     # 送信者がbotである場合は弾く
     if message.author.bot:
         return
-
-    # メッセージについたリアクションの個数を送信
-    if message.content.startswith("/get_reactions "):
-        link = message.content.replace("/get_reactions", "")
-        match = link_regex.match(link)
-        channel = client.get_channel(int(match.group("channel_id")))
-        target_message = await channel.fetch_message(int(match.group("message_id")))
-        reactions = target_message.reactions
-        text = "絵文字 : 個数\n"
-        for reaction in reactions:
-            text += f"{reaction.emoji} : {reaction.count}\n"
-        await message.channel.send(text)
-
     # 投票機能
     if message.content.startswith("/vote "):
         result = message.content.replace("/vote ", "")

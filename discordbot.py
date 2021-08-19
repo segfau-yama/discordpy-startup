@@ -1,7 +1,11 @@
 import os
 import discord
 import re
+from discord.ext import tasks
+from datetime import datetime, timedelta, timezone
+import psycopg2
 
+JST = timezone(timedelta(hours=9))
 token = os.environ['DISCORD_BOT_TOKEN']
 database_url = os.environ['DATABASE_URL']
 

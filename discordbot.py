@@ -1,18 +1,21 @@
-import os
-import discord
+from discord.ext import commands
+from os import getenv
+import traceback
 
-token = os.environ['DISCORD_BOT_TOKEN']
-database_url = os.environ['DATABASE_URL']
+bot = commands.Bot(command_prefix='/')
 
-client = discord.Client()
 
-@client.event
-async def on_message(message):
-    # 送信者がbotである場合は弾く
-    if message.author.bot:
-        return
+@bot.event
+async def on_command_error(ctx, error):
+    orig_error = getattr(error, "original", error)
+    error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())
+    await ctx.send(error_msg)
 
-    # メッセージについたリアクションの個数を送信
-    if message.content.startswith("/ping"):
-        text = "pong"
-        await message.channel.send(text)
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send('pong')
+
+
+token = getenv('DISCORD_BOT_TOKEN')
+bot.run(token)

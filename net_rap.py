@@ -4,7 +4,7 @@ from queue import Queue
 import asyncio
 from discord.ext import tasks, commands
 import os
-import psycopg2
+import asyncpg
 
 queue = Queue()
 link_regex = re.compile(
@@ -141,20 +141,16 @@ class rhyme(commands.Cog):
             print(a)
 
 # sql用class
-class sql_com(commands.Cog):
+"""class sql_com(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._last_member = None
-    def get_connection(self):
-        dsn = os.environ.get('DATABASE_URL')
-        return psycopg2.connect(dsn)
     @commands.command()
     async def query(self, ctx, text):
-        conn = self.get_connection()
-        cur = conn.cursor()
-        cur.execute(text)
-        rows = cur.fetchall()
+        #dsn = os.environ.get('DATABASE_URL')
+        conn = await asyncpg.connect(dsn)
+        rows = await conn.fetch("SELECT * FROM users")
         await ctx.send(rows)
-        conn.commit()
+        await conn.close()"""
 def setup(bot):
     return bot.add_cog(rhyme(bot))

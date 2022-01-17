@@ -15,7 +15,7 @@ async def on_command_error(ctx, error):
     await ctx.send(error_msg)
 
 bot.add_cog(net_rap.rhyme(bot))
-bot.add_cog(net_rap.freestyle(bot))
+bot.add_cog(net_rap.sql_com(bot))
 
-token = getenv('DISCORD_BOT_TOKEN')
+token = "NzEyNjU5NDc1MTUyMTA5NTY4.XsUx2w.9r-fyh77VgniF6MjpbA53A-YRoI"
 bot.run(token)

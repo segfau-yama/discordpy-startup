@@ -3,6 +3,9 @@ import re
 from queue import Queue
 import asyncio
 from discord.ext import tasks, commands
+import os
+import psycopg2
+
 queue = Queue()
 link_regex = re.compile(
     r'https://discord\.com/channels/'
@@ -33,7 +36,6 @@ class rhyme(commands.Cog):
         self.v_count = 0
         self.red_corner = ""
         self.blue_corner = ""
-
     @commands.command()
     async def rhyme_battle(self, ctx, *mc):
         if len(mc) == 4 and any(chr.isdigit() for chr in mc[2]) and any(chr.isdigit() for chr in mc[3]):
@@ -138,14 +140,22 @@ class rhyme(commands.Cog):
             a = await channel.fetch_message(self.vote_id)
             print(a)
 
-# フリースタイル用class
-class freestyle(commands.Cog):
+# sql用class
+class sql_com(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._last_member = None
-
+    def get_connection(self):
+        dsn = os.environ.get('DATABASE_URL')
+        return psycopg2.connect(dsn)
     @commands.command()
-    async def test2(self, ctx):
-        pass
+    async def query(self, ctx, text):
+        conn = self.get_connection()
+        cur = conn.cursor()
+        cur.execute(text)
+        rows = cur.fetchall()
+        await ctx.send(rows)
+        cur.close()
+        conn.close()
 def setup(bot):
     return bot.add_cog(rhyme(bot))

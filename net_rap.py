@@ -155,7 +155,6 @@ class sql_com(commands.Cog):
         cur.execute(text)
         rows = cur.fetchall()
         await ctx.send(rows)
-        cur.close()
-        conn.close()
+        conn.commit()
 def setup(bot):
     return bot.add_cog(rhyme(bot))

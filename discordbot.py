@@ -3,7 +3,6 @@ from os import getenv
 import traceback
 import fictional_nation
 
-
 bot = commands.Bot(command_prefix="#")
 
 @bot.event

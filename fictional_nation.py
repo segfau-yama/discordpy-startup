@@ -27,7 +27,7 @@ class world(commands.Cog):
             self.flag.append(row["flag"])
 
     # 時間処理
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=60)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)

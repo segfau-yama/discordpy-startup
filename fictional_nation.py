@@ -2,7 +2,7 @@ import asyncpg
 from discord.ext import tasks, commands
 from datetime import datetime
 from os import getenv
-
+import asyncio
 
 # 架空国家用class
 class world(commands.Cog):
@@ -38,19 +38,21 @@ class world(commands.Cog):
             await self.vote.add_reaction(emoji)
         await asyncio.sleep(10)
 
-        vote = await vote_channel.fetch_message(self.vote.id)
-        # vote = await vote_channel.fetch_message(971087716878012456)
-        print(vote.reactions)
-        await vote_channel.send("投票結果:")
-        for reaction in vote.reactions:
-            emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
-            count = reaction.count * 10 - 10
-            await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
-                                    emoji)
-            await vote_channel.send(f"{emoji}:{count}")"""
+        try:
+            vote = await vote_channel.fetch_message(self.vote.id)
+            print(vote.reactions)
+            await vote_channel.send("投票結果:")
+            for reaction in vote.reactions:
+                emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
+                count = reaction.count * 10 - 10
+                await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
+                                        emoji)
+                await vote_channel.send(f"{emoji}:{count}")
+        except:
+            print("error")"""
 
         # 投票開始
-        if now == "00:00":
+        if now == "01:00":
             self.vote = await vote_channel.send('投票を開始します。投票は2国まで可能です。')
             for emoji in self.flag:
                 await self.vote.add_reaction(emoji)
@@ -64,17 +66,19 @@ class world(commands.Cog):
 
         # 投票集計
         if now == "23:59":
-            vote = await vote_channel.fetch_message(self.vote.id)
-            # vote = await vote_channel.fetch_message(971087716878012456)
-            if vote is not None:
-                print(vote.reactions)
-                await vote_channel.send("投票結果:")
-                for reaction in vote.reactions:
-                    emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
-                    count = reaction.count * 10 - 10
-                    await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
-                                            emoji)
-                    await vote_channel.send(f"{emoji}:{count}")
+            try:
+                vote = await vote_channel.fetch_message(self.vote.id)
+                if vote is not None:
+                    print(vote.reactions)
+                    await vote_channel.send("投票結果:")
+                    for reaction in vote.reactions:
+                        emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
+                        count = reaction.count * 10 - 10
+                        await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
+                                                emoji)
+                        await vote_channel.send(f"{emoji}:{count}")
+            except:
+                print("error")
 
     # 国力表示
     @commands.command()

@@ -1,10 +1,8 @@
 from discord.ext import commands
 from os import getenv
 import traceback
-import discord
-import random
 import fictional_nation
-import psycopg2
+
 
 bot = commands.Bot(command_prefix="#")
 

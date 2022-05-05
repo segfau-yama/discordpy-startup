@@ -2,7 +2,6 @@ import asyncpg
 from discord.ext import tasks, commands
 from datetime import datetime
 from os import getenv
-import asyncio
 
 # 架空国家用class
 class world(commands.Cog):

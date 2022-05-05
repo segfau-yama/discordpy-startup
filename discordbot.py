@@ -15,4 +15,5 @@ async def on_command_error(ctx, error):
 bot.add_cog(fictional_nation.world(bot))
 
 token = getenv('DISCORD_BOT_TOKEN')
+
 bot.run(token)

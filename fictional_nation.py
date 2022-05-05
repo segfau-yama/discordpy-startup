@@ -66,14 +66,15 @@ class world(commands.Cog):
         if now == "23:59":
             vote = await vote_channel.fetch_message(self.vote.id)
             # vote = await vote_channel.fetch_message(971087716878012456)
-            print(vote.reactions)
-            await vote_channel.send("投票結果:")
-            for reaction in vote.reactions:
-                emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
-                count = reaction.count * 10 - 10
-                await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
-                                        emoji)
-                await vote_channel.send(f"{emoji}:{count}")
+            if vote is not None:
+                print(vote.reactions)
+                await vote_channel.send("投票結果:")
+                for reaction in vote.reactions:
+                    emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
+                    count = reaction.count * 10 - 10
+                    await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
+                                            emoji)
+                    await vote_channel.send(f"{emoji}:{count}")
 
     # 国力表示
     @commands.command()

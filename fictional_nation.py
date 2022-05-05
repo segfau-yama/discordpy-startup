@@ -85,6 +85,11 @@ class world(commands.Cog):
             power += f"{row['flag']}{row['country_name']}:{row['country_power']}\n"
         await ctx.send(power)
 
+    @commands.command()
+    async def time(self, ctx):
+        now = datetime.now().strftime('%H:%M')
+        await ctx.send(now)
+
     # 再接続
     @commands.command()
     async def db_conn(self, ctx):
@@ -109,7 +114,6 @@ class world(commands.Cog):
     async def reset(self, ctx):
         await ctx.send("国力を初期化します")
         await self.conn.execute("UPDATE country SET country_power = 0")
-
 
 def setup(bot):
     return bot.add_cog(world(bot))

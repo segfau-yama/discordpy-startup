@@ -90,6 +90,11 @@ class world(commands.Cog):
         await ctx.send(power)
 
     @commands.command()
+    async def all_country1(self, ctx):
+        embed = self.bot.Embed(title="Embedのタイトル", description="Embedの概要")
+        await ctx.send(embed=embed)
+
+    @commands.command()
     async def time(self, ctx):
         now = datetime.now().strftime('%H:%M')
         await ctx.send(now)

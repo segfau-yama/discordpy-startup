@@ -85,7 +85,7 @@ class world(commands.Cog):
         rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
         await ctx.send("国力一覧")
         for row in rows:
-            user = await ctx.fetch_user(row['user_id'])
+            user = await self.bot.fetch_user(row['user_id'])
             power += f"{row['flag']}{row['country_name']},{user}:{row['country_power']}\n"
         await ctx.send(power)
 

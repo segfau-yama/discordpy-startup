@@ -120,7 +120,7 @@ class world(commands.Cog):
 
     # 国家追加
     @commands.command()
-    async def reset(self, ctx, country, flag, player):
+    async def add_country(self, ctx, country, flag, player):
         await ctx.send(f"国力を追加しました。国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
         await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 

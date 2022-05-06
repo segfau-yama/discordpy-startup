@@ -80,12 +80,13 @@ class world(commands.Cog):
 
     # 国力表示
     @commands.command()
-    async def power(self, ctx):
+    async def all_country(self, ctx):
         power = ""
-        rows = await self.conn.fetch("SELECT flag, country_name, country_power FROM country")
+        rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
         await ctx.send("国力一覧")
         for row in rows:
-            power += f"{row['flag']}{row['country_name']}:{row['country_power']}\n"
+            user = await ctx.fetch_user(row['user_id'])
+            power += f"{row['flag']}{row['country_name']},{user}:{row['country_power']}\n"
         await ctx.send(power)
 
     @commands.command()
@@ -121,7 +122,7 @@ class world(commands.Cog):
     # 国家追加
     @commands.command()
     async def add_country(self, ctx, country, flag, player):
-        await ctx.send(f"国力を追加しました。国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
+        await ctx.send(f"国力を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
         await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 
 def setup(bot):

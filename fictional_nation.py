@@ -1,4 +1,5 @@
 import asyncpg
+import discord
 from discord.ext import tasks, commands
 from datetime import datetime
 from os import getenv
@@ -52,7 +53,7 @@ class world(commands.Cog):
 
         # 投票開始
         if now == "00:00":
-            self.vote = await vote_channel.send('投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
+            self.vote = await vote_channel.send('人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
             for emoji in self.flag:
                 await self.vote.add_reaction(emoji)
 
@@ -86,13 +87,8 @@ class world(commands.Cog):
         await ctx.send("国力一覧")
         for row in rows:
             user = await self.bot.fetch_user(row['user_id'])
-            power += f"{row['flag']}{row['country_name']},{user}:{row['country_power']}\n"
+            power += f"{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
         await ctx.send(power)
-
-    @commands.command()
-    async def all_country1(self, ctx):
-        embed = self.bot.Embed(title="Embedのタイトル", description="Embedの概要")
-        await ctx.send(embed=embed)
 
     @commands.command()
     async def time(self, ctx):

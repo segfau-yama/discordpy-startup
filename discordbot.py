@@ -3,6 +3,9 @@ from os import getenv
 import traceback
 import fictional_nation
 
+# from set import set_token
+# set_token()
+
 bot = commands.Bot(command_prefix="#")
 
 @bot.event

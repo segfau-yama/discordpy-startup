@@ -51,8 +51,8 @@ class world(commands.Cog):
             print("error")"""
 
         # 投票開始
-        if now == "01:00":
-            self.vote = await vote_channel.send('投票を開始します。投票は2国まで可能です。')
+        if now == "00:00":
+            self.vote = await vote_channel.send('投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
             for emoji in self.flag:
                 await self.vote.add_reaction(emoji)
 
@@ -73,8 +73,7 @@ class world(commands.Cog):
                     for reaction in vote.reactions:
                         emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10
-                        await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
-                                                emoji)
+                        await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count, emoji)
                         await vote_channel.send(f"{emoji}:{count}")
             except:
                 print("error")
@@ -118,6 +117,12 @@ class world(commands.Cog):
     async def reset(self, ctx):
         await ctx.send("国力を初期化します")
         await self.conn.execute("UPDATE country SET country_power = 0")
+
+    # 国家追加
+    @commands.command()
+    async def reset(self, ctx, country, flag, player):
+        await ctx.send(f"国力を追加しました。国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
+        await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 
 def setup(bot):
     return bot.add_cog(world(bot))

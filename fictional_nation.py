@@ -5,27 +5,31 @@ from datetime import datetime
 from os import getenv
 import asyncio
 
-
 # 架空国家用class
-class world(commands.Cog):
-    def __init__(self, bot):
+class Everyone:
+    def __init__(self, bot, dsn):
         self.bot = bot
-        self.dsn = getenv('DATABASE_URL')
+        self.dsn = dsn
         self.conn = None
-        self.loop.start()
         self.flag = []
-
-    def cog_unload(self):
-        self.loop.cancel()
 
     # 起動時処理
     @commands.Cog.listener()
     async def on_ready(self):
-        print("on_ready")
         self.conn = await asyncpg.connect(self.dsn)
         rows = await self.conn.fetch("SELECT flag FROM country")
         for row in rows:
             self.flag.append(row["flag"])
+        print("on_ready")
+
+
+class Bot(commands.Cog, Everyone):
+    def __init__(self, bot, dsn):
+        super().__init__(bot, dsn)
+        self.loop.start()
+
+    def cog_unload(self):
+        self.loop.cancel()
 
     # 投票時処理
     @commands.Cog.listener()
@@ -44,65 +48,8 @@ class world(commands.Cog):
                 "UPDATE country SET (country_power, today_vote)=(country_power+5, ($1)) WHERE user_id=($2)", vote_jg,
                 str(payload.user_id))
 
-    # 国力表示
-    @commands.command()
-    async def all_country(self, ctx):
-        power = ""
-        rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
-        await ctx.send("国力一覧")
-        for row in rows:
-            user = await self.bot.fetch_user(row['user_id'])
-            power += f"{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
-        await ctx.send(power)
-
-    @commands.command()
-    async def time(self, ctx):
-        now = datetime.now().strftime('%H:%M')
-        await ctx.send(now)
-
-    # 再接続
-    @commands.command()
-    async def db_conn(self, ctx):
-        self.conn = await asyncpg.connect(self.dsn)
-        await ctx.send("データベースに接続します")
-
-    # 入力クエリ実行
-    @commands.command()
-    async def db_query1(self, ctx, *, query):
-        await ctx.send(query)
-        await self.conn.execute(query)
-
-    # 出力クエリ実行
-    @commands.command()
-    async def db_query2(self, ctx, *, query):
-        rows = await self.conn.fetch(query)
-        for row in rows:
-            await ctx.send(row)
-
-    # 国力リセット
-    @commands.command()
-    async def reset(self, ctx):
-        await ctx.send("国力を初期化します")
-        await self.conn.execute("UPDATE country SET country_power = 0")
-
-    # 国家追加
-    @commands.command()
-    async def add_country(self, ctx, country, flag, player):
-        await ctx.send(f"国力を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
-        await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country,
-                                flag, player)
-
-    @commands.command()
-    async def vote_result(self, ctx):
-        vote_channel = await self.bot.fetch_channel(852882836189085697)
-        vote_id = None
-        rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
-        for row in rows:
-            vote_id = row['vote_id']
-        vote = await vote_channel.fetch_message(int(vote_id))
-
     # 時間処理
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=60)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
@@ -126,6 +73,7 @@ class world(commands.Cog):
         if now == "23:59":
             try:
                 vote_id = None
+                txt = ""
                 rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
                 for row in rows:
                     vote_id = row['vote_id']
@@ -136,12 +84,78 @@ class world(commands.Cog):
                     for reaction in vote.reactions:
                         emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10
+                        txt += f"{emoji}:{count}"
                         await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)",
                                                 count, emoji)
-                        await vote_channel.send(f"{emoji}:{count}")
+                    await vote_channel.send(txt)
             except:
                 print("error")
 
 
-def setup(bot):
-    return bot.add_cog(world(bot))
+class User(commands.Cog, Everyone):
+    # 国力表示
+    @commands.command()
+    async def all_country(self, ctx):
+        power = ""
+        rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
+        await ctx.send("国力一覧")
+        for row in rows:
+            user = await self.bot.fetch_user(row['user_id'])
+            power += f"{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
+        await ctx.send(power)
+
+    # 時間表示
+    @commands.command()
+    async def time(self, ctx):
+        now = datetime.now().strftime('%H:%M')
+        await ctx.send(f"ただいまの時刻:{now}")
+
+
+class SuperUser(commands.Cog, Everyone):
+    @commands.check
+    async def is_owner(self, ctx):
+        return ctx.author.id == "オーナーのid"
+
+    # 再接続
+    @commands.command()
+    @commands.is_owner()
+    async def db_conn(self, ctx):
+        self.conn = await asyncpg.connect(self.dsn)
+        await ctx.send("データベースに接続します")
+
+    # 入力クエリ実行
+    @commands.command()
+    @commands.is_owner()
+    async def db_query1(self, ctx, *, query):
+        await ctx.send(query)
+        await self.conn.execute(query)
+
+    # 出力クエリ実行
+    @commands.command()
+    @commands.is_owner()
+    async def db_query2(self, ctx, *, query):
+        txt = ""
+        rows = await self.conn.fetch(query)
+        for row in rows:
+            txt += f"{row}\n"
+        await ctx.send(txt)
+
+    # 国力リセット
+    @commands.command()
+    @commands.is_owner()
+    async def reset(self, ctx):
+        await ctx.send("国力を初期化します")
+        await self.conn.execute("UPDATE country SET (country_power, today_vote) = (0, 'f')")
+
+    # 国家追加
+    @commands.command()
+    @commands.is_owner()
+    async def add_country(self, ctx, country, flag, player):
+        await ctx.send(f"国力を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
+        await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
+
+
+def setup(bot, dsn):
+    bot.add_cog(Bot(bot, dsn))
+    bot.add_cog(User(bot, dsn))
+    bot.add_cog(SuperUser(bot, dsn))

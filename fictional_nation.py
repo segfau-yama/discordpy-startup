@@ -145,7 +145,7 @@ class SuperUser(commands.Cog, Everyone):
     @commands.is_owner()
     async def reset(self, ctx):
         await ctx.send("国力を初期化します")
-        await self.conn.execute("UPDATE country SET (country_power, today_vote) = (0, 'f')")
+        await self.conn.execute("UPDATE country SET (country_power, today_vote) = (0, FALSE)")
 
     # 国家追加
     @commands.command()

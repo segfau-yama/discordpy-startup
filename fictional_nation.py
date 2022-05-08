@@ -5,6 +5,7 @@ from datetime import datetime
 from os import getenv
 import asyncio
 
+
 # 架空国家用class
 class Everyone:
     def __init__(self, bot, dsn):

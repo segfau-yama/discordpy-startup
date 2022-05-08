@@ -85,8 +85,7 @@ class Bot(commands.Cog, Everyone):
                         emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10
                         txt += f"{emoji}:{count}"
-                        await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)",
-                                                count, emoji)
+                        await self.conn.execute("UPDATE country SET (country_power,today_vote)=(country_power+($1),FALSE) WHERE flag=($2)", count, emoji)
                     await vote_channel.send(txt)
             except:
                 print("error")
@@ -133,7 +132,7 @@ class User(commands.Cog, Everyone):
 
     @commands.command()
     async def add_meigen(self, ctx, user, meigen):
-        """紳士の会メンバーの名言を表示をする"""
+        """紳士の会メンバーの名言を表示をする(未実装)"""
         print(user, meigen)
 
 

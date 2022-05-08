@@ -12,7 +12,6 @@ class world(commands.Cog):
         self.conn = None
         self.loop.start()
         self.flag = []
-        self.vote = None
 
     def cog_unload(self):
         self.loop.cancel()
@@ -27,35 +26,18 @@ class world(commands.Cog):
             self.flag.append(row["flag"])
 
     # 時間処理
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=10)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
         vote_channel = await self.bot.fetch_channel(852882836189085697)
 
-        """self.vote = await vote_channel.send('投票を開始します。投票は2国まで可能です。')
-        for emoji in self.flag:
-            await self.vote.add_reaction(emoji)
-        await asyncio.sleep(10)
-
-        try:
-            vote = await vote_channel.fetch_message(self.vote.id)
-            print(vote.reactions)
-            await vote_channel.send("投票結果:")
-            for reaction in vote.reactions:
-                emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
-                count = reaction.count * 10 - 10
-                await self.conn.execute("UPDATE country SET country_power=country_power+($1) WHERE flag=($2)", count,
-                                        emoji)
-                await vote_channel.send(f"{emoji}:{count}")
-        except:
-            print("error")"""
-
         # 投票開始
         if now == "00:00":
-            self.vote = await vote_channel.send('人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
+            vote = await vote_channel.send('人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
             for emoji in self.flag:
-                await self.vote.add_reaction(emoji)
+                await vote.add_reaction(emoji)
+            await self.conn.execute("UPDATE bot_data SET vote_id=($1) WHERE id=1", vote.id)
 
         if now == "07:00":
             await notice_channel.send('おはよう、紳士諸君')
@@ -67,7 +49,11 @@ class world(commands.Cog):
         # 投票集計
         if now == "23:59":
             try:
-                vote = await vote_channel.fetch_message(self.vote.id)
+                vote_id = None
+                rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
+                for row in rows:
+                    vote_id = row['vote_id']
+                vote = await vote_channel.fetch_message(int(vote_id))
                 if vote is not None:
                     print(vote.reactions)
                     await vote_channel.send("投票結果:")
@@ -126,5 +112,10 @@ class world(commands.Cog):
         await ctx.send(f"国力を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
         await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 
+    @commands.command()
+    async def a(self, ctx):
+        rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
+        for row in rows:
+            print(row['vote_id'])
 def setup(bot):
     return bot.add_cog(world(bot))

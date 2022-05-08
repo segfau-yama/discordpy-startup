@@ -110,6 +110,32 @@ class User(commands.Cog, Everyone):
         now = datetime.now().strftime('%H:%M')
         await ctx.send(f"ただいまの時刻:{now}")
 
+    @commands.command()
+    async def vote_result(self, ctx):
+        """現在の投票結果を確認する"""
+        vote_channel = await self.bot.fetch_channel(852882836189085697)
+        try:
+            vote_id = None
+            txt = ""
+            rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
+            for row in rows:
+                vote_id = row['vote_id']
+            vote = await vote_channel.fetch_message(int(vote_id))
+            if vote is not None:
+                await ctx.send("現在の投票結果:")
+                for reaction in vote.reactions:
+                    emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
+                    count = reaction.count * 10 - 10
+                    txt += f"{emoji}:{count}pt\n"
+                await ctx.send(txt)
+        except:
+            print("error")
+
+    @commands.command()
+    async def add_meigen(self, ctx, user, meigen):
+        """紳士の会メンバーの名言を表示をする"""
+        print(user, meigen)
+
 
 class SuperUser(commands.Cog, Everyone):
     @commands.command()

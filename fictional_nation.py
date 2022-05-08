@@ -93,9 +93,9 @@ class Bot(commands.Cog, Everyone):
 
 
 class User(commands.Cog, Everyone):
-    # 国力表示
     @commands.command()
     async def all_country(self, ctx):
+        """全ての国家を表示をする"""
         power = ""
         rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
         await ctx.send("国力一覧")
@@ -104,54 +104,50 @@ class User(commands.Cog, Everyone):
             power += f"{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
         await ctx.send(power)
 
-    # 時間表示
     @commands.command()
     async def time(self, ctx):
+        """時間を表示をする"""
         now = datetime.now().strftime('%H:%M')
         await ctx.send(f"ただいまの時刻:{now}")
 
 
 class SuperUser(commands.Cog, Everyone):
-    @commands.check
-    async def is_owner(self, ctx):
-        return ctx.author.id == "オーナーのid"
-
-    # 再接続
     @commands.command()
     @commands.is_owner()
     async def db_conn(self, ctx):
+        """データベースに再接続する"""
         self.conn = await asyncpg.connect(self.dsn)
         await ctx.send("データベースに接続します")
 
-    # 入力クエリ実行
     @commands.command()
     @commands.is_owner()
     async def db_query1(self, ctx, *, query):
+        """クエリを実行する"""
         await ctx.send(query)
         await self.conn.execute(query)
 
-    # 出力クエリ実行
     @commands.command()
     @commands.is_owner()
     async def db_query2(self, ctx, *, query):
+        """クエリを実行し結果を出力する"""
         txt = ""
         rows = await self.conn.fetch(query)
         for row in rows:
             txt += f"{row}\n"
         await ctx.send(txt)
 
-    # 国力リセット
     @commands.command()
     @commands.is_owner()
     async def reset(self, ctx):
+        """国力をリセットする"""
         await ctx.send("国力を初期化します")
         await self.conn.execute("UPDATE country SET (country_power, today_vote) = (0, FALSE)")
 
-    # 国家追加
     @commands.command()
     @commands.is_owner()
     async def add_country(self, ctx, country, flag, player):
-        await ctx.send(f"国力を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
+        """国家を追加する"""
+        await ctx.send(f"国家を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
         await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 
 

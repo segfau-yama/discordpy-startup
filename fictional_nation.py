@@ -35,6 +35,8 @@ class Bot(commands.Cog, Everyone):
     # 投票時処理
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        if payload.member.bot:
+            return
         vote_id = None
         vote_jg = None
         rows1 = await self.conn.fetch("SELECT vote_id FROM bot_data")
@@ -55,13 +57,15 @@ class Bot(commands.Cog, Everyone):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
         vote_channel = await self.bot.fetch_channel(852882836189085697)
+        dev_channel = await self.bot.fetch_channel(871948382116134922)
 
         # 投票開始
         if now == "00:00":
             vote = await vote_channel.send('人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
+            print(vote.id)
             for emoji in self.flag:
                 await vote.add_reaction(emoji)
-            await self.conn.execute("UPDATE bot_data SET vote_id=($1) WHERE id=1", vote.id)
+            await self.conn.execute("UPDATE bot_data SET vote_id=($1) WHERE id=1", str(vote.id))
 
         if now == "07:00":
             await notice_channel.send('おはよう、紳士諸君')

@@ -4,29 +4,33 @@ from discord.ext import tasks, commands
 from datetime import datetime
 from os import getenv
 import asyncio
-import random
+import re
 
-
-# 架空国家用class
-class Bot(commands.Cog):
+class Every:
     def __init__(self, bot, dsn):
         self.bot = bot
         self.dsn = dsn
         self.conn = None
         self.flag = []
-        self.loop.start()
-
-    def cog_unload(self):
-        self.loop.cancel()
 
     # 起動時処理
     @commands.Cog.listener()
     async def on_ready(self):
-        print("on_ready")
         self.conn = await asyncpg.connect(self.dsn)
         rows = await self.conn.fetch("SELECT flag FROM country")
         for row in rows:
             self.flag.append(row["flag"])
+
+
+# 架空国家用class
+class Bot(commands.Cog, Every):
+    def __init__(self, bot, dsn):
+        super().__init__(bot, dsn)
+        self.loop.add_exception_type(asyncpg.PostgresConnectionError)
+        self.loop.start()
+
+    def cog_unload(self):
+        self.loop.cancel()
 
     # 投票時処理
     @commands.Cog.listener()
@@ -130,33 +134,58 @@ class Bot(commands.Cog):
             print("error")
 
     @commands.command()
-    async def add_meigen(self, ctx, user, meigen):
-        """紳士の会メンバーの名言を表示をする(未実装)"""
-        print(user, meigen)
+    async def add_meigen(self, ctx, user: discord.Member, meigen: str):
+        """紳士の会メンバーの名言を追加する"""
+        print(user.id, meigen)
+        await self.conn.execute("INSERT INTO meigen (user_id,text) VALUES (($1),($2))", str(user.id), meigen)
 
     @commands.command()
-    @commands.is_owner()
+    async def look_meigen(self, ctx, *args):
+        """紳士の会メンバーの名言を見る"""
+        if len(args) == 1:
+            txt = ""
+            if '<@' in args[0]:
+                user_id = re.findall('[0-9]+', args[0])
+                rows = await self.conn.fetch("SELECT text FROM meigen WHERE user_id=($1)", user_id[0])
+                user = await self.bot.fetch_user(user_id[0])
+                for row in rows:
+                    txt += f"{user}の名言:\n{row['text']}\n"
+                await ctx.send(txt)
+            elif not args[0]:
+                await ctx.send("こいつの名言は無いよ")
+        elif len(args) == 0:
+            txt = ""
+            rows = await self.conn.fetch("SELECT text FROM meigen")
+            for row in rows:
+                txt += f"{row['text']}\n"
+            await ctx.send(txt)
+
+class Administrator(commands.Cog, Every):
+    def __init__(self, bot, dsn):
+        super().__init__(bot, dsn)
+
+    def cog_check(self, ctx):
+        return ctx.author.id == 501014325138292737
+
+    @commands.command()
     async def db_conn(self, ctx):
         """データベースに再接続する"""
         self.conn = await asyncpg.connect(self.dsn)
         await ctx.send("データベースに接続します")
 
     @commands.command()
-    @commands.is_owner()
     async def db_close(self, ctx):
         """データベースから切断する"""
         await ctx.send("データベースから切断します")
         await self.conn.close()
 
     @commands.command()
-    @commands.is_owner()
     async def db_query1(self, ctx, *, query):
         """クエリを実行する"""
         await ctx.send(query)
         await self.conn.execute(query)
 
     @commands.command()
-    @commands.is_owner()
     async def db_query2(self, ctx, *, query):
         """クエリを実行し結果を出力する"""
         txt = ""
@@ -166,24 +195,38 @@ class Bot(commands.Cog):
         await ctx.send(txt)
 
     @commands.command()
-    @commands.is_owner()
     async def reset(self, ctx):
         """国力をリセットする"""
         await ctx.send("国力を初期化します")
         await self.conn.execute("UPDATE country SET (country_power, today_vote) = (0, FALSE)")
 
     @commands.command()
-    @commands.is_owner()
     async def add_country(self, ctx, country, flag, player):
         """国家を追加する"""
         await ctx.send(f"国家を追加しました。\n国名:{country}\n国旗:{flag}\nプレイヤーid:{player}")
-        await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
+        await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country,
+                                flag, player)
 
 
 class Test(commands.Cog):
-    pass
+    def __init__(self, bot, conn):
+        self.bot = bot
+        self.conn = conn
+
+    @commands.command()
+    async def db_query2(self, ctx, *, query):
+        print(self.conn)
+        txt = ""
+        rows = await self.conn.fetch(query)
+        for row in rows:
+            txt += f"{row}\n"
+        await ctx.send(txt)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(self.conn)
 
 
 def setup(bot, dsn):
     bot.add_cog(Bot(bot, dsn))
-    bot.add_cog(Test(bot))
+    bot.add_cog(Administrator(bot, dsn))

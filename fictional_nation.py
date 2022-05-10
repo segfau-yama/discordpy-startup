@@ -103,7 +103,7 @@ class Bot(commands.Cog, Every):
         await ctx.send("国力一覧")
         for row in rows:
             user = await self.bot.fetch_user(row['user_id'])
-            power += f"{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
+            power += f"{row}位|{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
         await ctx.send(power)
 
     @commands.command()

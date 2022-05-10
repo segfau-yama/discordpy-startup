@@ -61,7 +61,7 @@ class Bot(commands.Cog, Every):
 
         # 投票開始
         if now == "00:00":
-            vote = await vote_channel.send('人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
+            vote = await vote_channel.send('@everyone 人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
             print(vote.id)
             for emoji in self.flag:
                 await vote.add_reaction(emoji)
@@ -85,7 +85,7 @@ class Bot(commands.Cog, Every):
                 vote = await vote_channel.fetch_message(int(vote_id))
                 if vote is not None:
                     print(vote.reactions)
-                    await vote_channel.send("投票結果:")
+                    await vote_channel.send("@everyone 投票結果:")
                     for reaction in vote.reactions:
                         emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10

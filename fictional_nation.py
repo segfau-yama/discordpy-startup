@@ -96,14 +96,13 @@ class Bot(commands.Cog, Every):
                 print("error")
 
     @commands.command()
-    async def all_country(self, ctx):
-        """全ての国家を表示をする"""
-        power = ""
+    async def country_rank(self, ctx):
+        """国力ランキングを表示をする"""
+        power = "国力ランキング:"
         rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country ORDER BY country_power DESC")
-        await ctx.send("国力一覧")
-        for i, row in rows:
+        for i, row in enumerate(rows):
             user = await self.bot.fetch_user(row['user_id'])
-            power += f"{i}位|{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
+            power += f"\n{i + 1}位|{row['flag']} | {row['country_name']} | {user} | {row['country_power']}pt\n"
         await ctx.send(power)
 
     @commands.command()

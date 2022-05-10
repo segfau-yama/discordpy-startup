@@ -4,32 +4,29 @@ from discord.ext import tasks, commands
 from datetime import datetime
 from os import getenv
 import asyncio
+import random
 
 
 # 架空国家用class
-class Everyone:
+class Bot(commands.Cog):
     def __init__(self, bot, dsn):
         self.bot = bot
         self.dsn = dsn
         self.conn = None
         self.flag = []
-
-    # 起動時処理
-    @commands.Cog.listener()
-    async def on_ready(self):
-        self.conn = await asyncpg.connect(self.dsn)
-        rows = await self.conn.fetch("SELECT flag FROM country")
-        for row in rows:
-            self.flag.append(row["flag"])
-
-
-class Bot(commands.Cog, Everyone):
-    def __init__(self, bot, dsn):
-        super().__init__(bot, dsn)
         self.loop.start()
 
     def cog_unload(self):
         self.loop.cancel()
+
+    # 起動時処理
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("on_ready")
+        self.conn = await asyncpg.connect(self.dsn)
+        rows = await self.conn.fetch("SELECT flag FROM country")
+        for row in rows:
+            self.flag.append(row["flag"])
 
     # 投票時処理
     @commands.Cog.listener()
@@ -94,8 +91,6 @@ class Bot(commands.Cog, Everyone):
             except:
                 print("error")
 
-
-class User(commands.Cog, Everyone):
     @commands.command()
     async def all_country(self, ctx):
         """全ての国家を表示をする"""
@@ -139,14 +134,19 @@ class User(commands.Cog, Everyone):
         """紳士の会メンバーの名言を表示をする(未実装)"""
         print(user, meigen)
 
-
-class SuperUser(commands.Cog, Everyone):
     @commands.command()
     @commands.is_owner()
     async def db_conn(self, ctx):
         """データベースに再接続する"""
         self.conn = await asyncpg.connect(self.dsn)
         await ctx.send("データベースに接続します")
+
+    @commands.command()
+    @commands.is_owner()
+    async def db_close(self, ctx):
+        """データベースから切断する"""
+        await ctx.send("データベースから切断します")
+        await self.conn.close()
 
     @commands.command()
     @commands.is_owner()
@@ -180,7 +180,10 @@ class SuperUser(commands.Cog, Everyone):
         await self.conn.execute("INSERT INTO country (country_name, flag, user_id) VALUES (($1), ($2), ($3))", country, flag, player)
 
 
+class Test(commands.Cog):
+    pass
+
+
 def setup(bot, dsn):
     bot.add_cog(Bot(bot, dsn))
-    bot.add_cog(User(bot, dsn))
-    bot.add_cog(SuperUser(bot, dsn))
+    bot.add_cog(Test(bot))

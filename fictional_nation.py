@@ -21,7 +21,6 @@ class Everyone:
         rows = await self.conn.fetch("SELECT flag FROM country")
         for row in rows:
             self.flag.append(row["flag"])
-        print("on_ready")
 
 
 class Bot(commands.Cog, Everyone):

@@ -99,7 +99,7 @@ class Bot(commands.Cog, Every):
     async def all_country(self, ctx):
         """全ての国家を表示をする"""
         power = ""
-        rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country")
+        rows = await self.conn.fetch("SELECT flag, country_name, user_id, country_power FROM country ORDER BY country_power DESC")
         await ctx.send("国力一覧")
         for row in rows:
             user = await self.bot.fetch_user(row['user_id'])

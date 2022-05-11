@@ -36,7 +36,7 @@ class Bot(commands.Cog, Every):
         self.loop.cancel()
 
     # 時間処理
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=10)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
@@ -56,14 +56,14 @@ class Bot(commands.Cog, Every):
             await notice_channel.send('おはよう、紳士諸君')
         if now == "12:00":
             await notice_channel.send('紅茶はいかがかね？')
-        if now == "23:00":
+        if now == "22:00":
             await notice_channel.send('おやすみ、紳士諸君')
 
         # 投票集計
         # TODO:投票集計をサブコマンドにする
         # TODO:デバッグ
         # TODO:Embed化
-        if now == "23:59":
+        if now == "23:00":
             # noinspection PyBroadException
             try:
                 vote_id = None

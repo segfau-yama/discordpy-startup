@@ -200,6 +200,7 @@ class Administrator(commands.Cog, Every):
         )
 
 
+# Test用クラス(アップデートで追加予定のメソッドも含める)
 class Test(commands.Cog):
     def __init__(self, bot, conn):
         self.bot = bot

@@ -6,6 +6,7 @@ from os import getenv
 import asyncio
 import re
 
+
 class Every:
     def __init__(self, bot, dsn):
         self.bot = bot
@@ -32,27 +33,8 @@ class Bot(commands.Cog, Every):
     def cog_unload(self):
         self.loop.cancel()
 
-    # 投票時処理
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        if payload.member.bot:
-            return
-        vote_id = None
-        vote_jg = None
-        rows1 = await self.conn.fetch("SELECT vote_id FROM bot_data")
-        rows2 = await self.conn.fetch("SELECT today_vote FROM country WHERE user_id = ($1)", str(payload.user_id))
-        for row in rows1:
-            vote_id = int(row['vote_id'])
-        for row in rows2:
-            vote_jg = bool(row['today_vote'])
-        vote_jg = not vote_jg
-        if payload.message_id == vote_id and vote_jg:
-            await self.conn.execute(
-                "UPDATE country SET (country_power, today_vote)=(country_power+5, ($1)) WHERE user_id=($2)", vote_jg,
-                str(payload.user_id))
-
     # 時間処理
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=10)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
@@ -78,20 +60,34 @@ class Bot(commands.Cog, Every):
         if now == "23:59":
             try:
                 vote_id = None
-                txt = ""
+                txt = "@everyone 投票結果:\n"
                 rows = await self.conn.fetch("SELECT vote_id FROM bot_data")
+                users = set()
+
+                # 投票メッセージを取得
                 for row in rows:
                     vote_id = row['vote_id']
                 vote = await vote_channel.fetch_message(int(vote_id))
+
+                # 投票集計処理
                 if vote is not None:
-                    print(vote.reactions)
-                    await vote_channel.send("@everyone 投票結果:")
                     for reaction in vote.reactions:
+                        async for user in reaction.users():
+                            if not user.bot:
+                                users.add(user.id)
+
                         emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10
-                        txt += f"{emoji}:{count}"
-                        await self.conn.execute("UPDATE country SET (country_power,today_vote)=(country_power+($1),FALSE) WHERE flag=($2)", count, emoji)
-                    await vote_channel.send(txt)
+                        txt += f"{emoji}:{count}\n"
+                        await self.conn.execute(
+                            "UPDATE country SET country_power=country_power+($1) WHERE flag=($2)"
+                            , count, emoji)
+                    for user in users:
+                        await self.conn.execute(
+                            "UPDATE country SET country_power=country_power+5 WHERE user_id=($1)"
+                            , user)
+                        pass
+                    await dev_channel.send(txt)
             except:
                 print("error")
 
@@ -158,6 +154,7 @@ class Bot(commands.Cog, Every):
             for row in rows:
                 txt += f"{row['text']}\n"
             await ctx.send(txt)
+
 
 class Administrator(commands.Cog, Every):
     def __init__(self, bot, dsn):

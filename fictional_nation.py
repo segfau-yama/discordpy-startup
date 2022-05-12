@@ -36,13 +36,12 @@ class Bot(commands.Cog, Every):
         self.loop.cancel()
 
     # 時間処理
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=60)
     async def loop(self):
         now = datetime.now().strftime('%H:%M')
         notice_channel = await self.bot.fetch_channel(853919175406649364)
         vote_channel = await self.bot.fetch_channel(852882836189085697)
         dev_channel = await self.bot.fetch_channel(871948382116134922)
-
         # 投票開始
         # TODO:投票開始をサブコマンドにする
         if now == "00:00":

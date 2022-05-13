@@ -42,6 +42,7 @@ class Bot(commands.Cog, Every):
         notice_channel = await self.bot.fetch_channel(853919175406649364)
         vote_channel = await self.bot.fetch_channel(852882836189085697)
         dev_channel = await self.bot.fetch_channel(871948382116134922)
+
         # 投票開始
         # TODO:投票開始をサブコマンドにする
         if now == "00:00":
@@ -91,7 +92,7 @@ class Bot(commands.Cog, Every):
                     for user in users:
                         await self.conn.execute(
                             "UPDATE country SET country_power=country_power+5 WHERE user_id=($1)"
-                            , user)
+                            , str(user))
                         pass
                     await vote_channel.send(txt)
             except Exception:

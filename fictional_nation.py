@@ -12,7 +12,14 @@ class Every:
         self.bot = bot
         self.dsn = dsn
         self.conn = None
-        self.flag = []
+
+    #flag取得関数
+    async def get_emojis(self):
+        emojis = []
+        guild = await self.bot.fetch_guild(852882672355377163)
+        for emoji in guild.emojis:
+            emojis.append(str(emoji))
+        return emojis
 
     # 起動時処理
     # TODO:flagの読み込みを関数で行う
@@ -20,13 +27,10 @@ class Every:
     @commands.Cog.listener()
     async def on_ready(self):
         self.conn = await asyncpg.connect(self.dsn)
-        rows = await self.conn.fetch("SELECT flag FROM country")
-        for row in rows:
-            self.flag.append(row["flag"])
 
 
 # 架空国家用class
-class Bot(commands.Cog, Every):
+class User(commands.Cog, Every):
     def __init__(self, bot, dsn):
         super().__init__(bot, dsn)
         self.loop.add_exception_type(asyncpg.PostgresConnectionError)
@@ -48,7 +52,8 @@ class Bot(commands.Cog, Every):
         if now == "00:00":
             vote = await vote_channel.send('@everyone 人気投票を開始します。投票は2国まで可能です。自国への投票は-10となります。')
             print(vote.id)
-            for emoji in self.flag:
+            flag = await self.get_emojis()
+            for emoji in flag:
                 await vote.add_reaction(emoji)
             await self.conn.execute("UPDATE bot_data SET vote_id=($1) WHERE id=1", str(vote.id))
 
@@ -83,12 +88,11 @@ class Bot(commands.Cog, Every):
                             if not user.bot:
                                 users.add(user.id)
 
-                        emoji = f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
                         count = reaction.count * 10 - 10
-                        txt += f"{emoji}:{count}\n"
+                        txt += f"{reaction}:{count}\n"
                         await self.conn.execute(
                             "UPDATE country SET country_power=country_power+($1) WHERE flag=($2)"
-                            , count, emoji)
+                            , count, str(reaction))
                     for user in users:
                         await self.conn.execute(
                             "UPDATE country SET country_power=country_power+5 WHERE user_id=($1)"
@@ -116,16 +120,22 @@ class Bot(commands.Cog, Every):
         now = datetime.now().strftime('%H:%M')
         await ctx.send(f"ただいまの時刻:{now}")
 
-    @commands.command()
-    async def add_meigen(self, ctx, user: discord.Member, meigen: str):
+    @commands.group()
+    async def meigen(self, ctx):
+        """名言コマンド"""
+        if ctx.invoked_subcommand is None:
+            await ctx.send('このコマンドにはサブコマンドが必要です。\nサブコマンド種類\nadd, remove, look')
+
+    @meigen.command()
+    async def add(self, ctx, user: discord.Member, meigen: str):
         """紳士の会メンバーの迷言を追加する"""
         await ctx.send(f"迷言を追加しました。\nメンバー:{user}\n名言:{meigen}")
         print(user.id, meigen)
         await self.conn.execute("INSERT INTO meigen (user_id,text) VALUES (($1),($2))", str(user.id), meigen)
 
     # TODO:迷言の追加の例外処理を明確にする
-    @commands.command()
-    async def look_meigen(self, ctx, *args):
+    @meigen.command()
+    async def look(self, ctx, *args):
         """紳士の会メンバーの迷言を見る"""
         if len(args) == 1:
             if '<@' in args[0]:
@@ -155,8 +165,9 @@ class Administrator(commands.Cog, Every):
 
     @commands.group()
     async def db(self, ctx):
+        """データベース処理"""
         if ctx.invoked_subcommand is None:
-            await ctx.send('このコマンドにはサブコマンドが必要です。')
+            await ctx.send('このコマンドにはサブコマンドが必要です。\nサブコマンド種類\nconn, close, query1, query2')
 
     @db.command()
     async def conn(self, ctx):
@@ -188,8 +199,16 @@ class Administrator(commands.Cog, Every):
     @commands.command()
     async def reset(self, ctx):
         """国力をリセットする"""
-        await ctx.send("国力を初期化します")
-        await self.conn.execute("UPDATE country SET country_power = 0")
+        def check(m):
+            return m.author == ctx.author and m.content == 'Y'
+        await ctx.send("本当にリセットしますか?:Y/N")
+        try:
+            await self.bot.wait_for('message', check=check, timeout=10.0)
+        except asyncio.TimeoutError:
+            await ctx.send('キャンセルしました')
+        else:
+            await ctx.send("国力を初期化します")
+            await self.conn.execute("UPDATE country SET country_power = 0")
 
     @commands.command()
     async def add_country(self, ctx, country, flag, player):
@@ -205,6 +224,9 @@ class Test(commands.Cog):
     def __init__(self, bot, conn):
         self.bot = bot
         self.conn = conn
+
+    def cog_check(self, ctx):
+        return ctx.author.id == 501014325138292737
 
     # メインとなるroleコマンド
     @commands.group()
@@ -225,8 +247,16 @@ class Test(commands.Cog):
     async def remove(self, ctx, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
 
+    @commands.command()
+    async def emoji(self, ctx):
+        def check(m):
+            return m.author == ctx.author and m.content == 'Y'
+        await ctx.send("Y/N")
+        await self.bot.wait_for('message', check=check)
+        await ctx.send("OK")
+
 
 def setup(bot, dsn):
-    bot.add_cog(Bot(bot, dsn))
+    bot.add_cog(User(bot, dsn))
     bot.add_cog(Administrator(bot, dsn))
     # bot.add_cog(Test(bot, dsn))

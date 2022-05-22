@@ -5,17 +5,6 @@ import traceback
 import fictional_nation
 import asyncpg
 import asyncio
-import ctypes
-import ctypes.util
-
-
-print("ctypes -Find opus:")
-a = ctypes.util.find_library('opus')
-print("Discord -Load Opus:")
-b = discord.opus.load_opus(a)
-print("Discord -Is loaded:")
-c = discord.opus.is_loaded()
-print(c)
 
 
 # ローカル用

@@ -1,6 +1,6 @@
 {
-  "name": "fictional_nation",
-  "description": "架空国家、音楽再生用bot",
+  "name": "discordpy-startup",
+  "description": "Herokuでdiscord.pyを始めるテンプレート",
   "repository": "https://github.com/DiscordBotPortalJP/discordpy-startup",
   "keywords": ["python", "discord", "bot"]
 }

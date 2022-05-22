@@ -25,7 +25,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.CommandNotFound):
         await ctx.send("このコマンドは存在しません")
     else:
-        ch = 871948382116134922
+        ch = 971052581214388314
         embed = discord.Embed(title="エラー情報", description="", color=0xf00)
         embed.add_field(name="エラー発生サーバー名", value=ctx.guild.name, inline=False)
         embed.add_field(name="エラー発生サーバーID", value=ctx.guild.id, inline=False)

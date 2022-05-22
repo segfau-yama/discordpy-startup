@@ -5,6 +5,7 @@ from datetime import datetime
 from os import getenv
 import asyncio
 import re
+import niconico_dl
 
 
 class Every:
@@ -13,7 +14,7 @@ class Every:
         self.dsn = dsn
         self.conn = None
 
-    #flag取得関数
+    # flag取得関数
     async def get_emojis(self):
         emojis = []
         guild = await self.bot.fetch_guild(852882672355377163)
@@ -255,8 +256,45 @@ class Test(commands.Cog):
         await self.bot.wait_for('message', check=check)
         await ctx.send("OK")
 
+    @commands.command()
+    async def get_movie(self, ctx):
+        url = "https://www.nicovideo.jp/watch/sm40386677"
+        async with niconico_dl.NicoNicoVideoAsync(url, log=True) as nico:
+            dl_url = await nico.get_download_link()
+            print(dl_url)
+        print("Downloaded!")
+
+    @commands.command()
+    async def join(self, ctx):
+        if ctx.author.voice is None:
+            await ctx.channel.send("あなたはボイスチャンネルに接続していません。")
+            return
+        await ctx.author.voice.channel.connect()
+        await ctx.channel.send("接続しました。")
+
+    @commands.command()
+    async def leave(self, ctx):
+        if ctx.guild.voice_client is None:
+            await ctx.channel.send("接続していません。")
+            return
+        await ctx.guild.voice_client.disconnect()
+        await ctx.channel.send("切断しました。")
+
+    @commands.command()
+    async def play(self, ctx, url):
+        if ctx.guild.voice_client is None:
+            await ctx.channel.send("接続していません。")
+            return
+        nico = niconico_dl.NicoNicoVideoAsync(url)
+        dl_url = await nico.get_download_link()
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(dl_url), volume=0.1)
+        ctx.guild.voice_client.play(source)
+        if not nico.is_working_heartbeat():
+            print("connect close")
+            nico.close()
+
 
 def setup(bot, dsn):
     bot.add_cog(User(bot, dsn))
     bot.add_cog(Administrator(bot, dsn))
-    # bot.add_cog(Test(bot, dsn))
+    bot.add_cog(Test(bot, dsn))

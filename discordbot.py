@@ -4,6 +4,7 @@ import discord
 import traceback
 import fictional_nation
 import asyncpg
+import asyncio
 
 # ローカル用
 try:
@@ -15,6 +16,7 @@ except:
 bot = commands.Bot(command_prefix="#")
 token = getenv('DISCORD_BOT_TOKEN')
 dsn = getenv('DATABASE_URL')
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -34,9 +36,11 @@ async def on_command_error(ctx, error):
         m = await bot.get_channel(ch).send(embed=embed)
         await ctx.send(f"何らかのエラーが発生しました。ごめんなさい。\nこのエラーについて問い合わせるときはこのコードも一緒にお知らせください：{m.id}")
 
+
 @bot.event
 async def on_ready():
     print("on_ready")
 
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 fictional_nation.setup(bot, dsn)
 bot.run(token)

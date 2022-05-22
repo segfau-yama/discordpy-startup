@@ -7,6 +7,8 @@ import asyncio
 import re
 import niconico_dl
 
+discord.opus.load_opus()
+
 
 class Every:
     def __init__(self, bot, dsn):

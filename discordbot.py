@@ -41,6 +41,6 @@ async def on_command_error(ctx, error):
 async def on_ready():
     print("on_ready")
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 fictional_nation.setup(bot, dsn)
 bot.run(token)

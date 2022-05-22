@@ -12,7 +12,7 @@ try:
     from set import set_token
     set_token()
 except:
-    print("error")
+    print("hello")
 
 bot = commands.Bot(command_prefix="#")
 token = getenv('DISCORD_BOT_TOKEN')
